@@ -4,426 +4,508 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DocuTranslate AI Agent</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" crossorigin></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --color-background-primary: #0b0f19;
+      --color-background-secondary: #111827;
+      --color-border-primary: #3b82f6;
+      --color-border-secondary: #1f2937;
+      --color-border-tertiary: #374151;
+      --color-text-primary: #f3f4f6;
+      --color-text-secondary: #9ca3af;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font-sans);color:var(--color-text-primary);background:var(--color-background-primary);padding:0 2rem}
+    .app{display:flex;flex-direction:column;min-height:600px;gap:1rem;padding:1rem 0;max-w:1280px;margin:0 auto}
+    .header{display:flex;align-items:center;gap:12px;padding-bottom:1rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+    .logo{width:38px;height:38px;border-radius:var(--border-radius-md);background:#1e293b;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-border-tertiary)}
+    .logo i{color:#3b82f6;font-size:20px}
+    .title{font-size:16px;font-weight:600}
+    .subtitle{font-size:12px;color:var(--color-text-secondary)}
+    .status-pill{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);padding:4px 10px;border-radius:20px}
+    .dot{width:7px;height:7px;border-radius:50%;background:#10b981}
+    .dot.busy{background:#f59e0b;animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .grid{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
+    .panel{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem}
+    .panel-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:.75rem}
+    .upload-zone{border:1.5px dashed var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:1.25rem;text-align:center;cursor:pointer;position:relative;transition:border-color .2s}
+    .upload-zone:hover{border-color:var(--color-border-primary)}
+    .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .upload-zone i{font-size:22px;color:var(--color-text-secondary);display:block;margin-bottom:6px}
+    .upload-zone p{font-size:12px;color:var(--color-text-secondary)}
+    .demo-btn{width:100%;margin-top:.5rem;padding:8px;font-size:12px;border-radius:var(--border-radius-md);cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-tertiary);transition:all .2s}
+    .demo-btn:hover{background:var(--color-background-secondary);border-color:var(--color-border-primary)}
+    .file-badge{margin-top:.75rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 10px;display:flex;align-items:center;gap:8px;font-size:12px}
+    .file-badge i{color:#ef4444;font-size:16px}
+    .file-name{color:var(--color-text-primary);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    label.field-label{display:block;font-size:11px;font-weight:500;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:4px;margin-top:.75rem}
+    select,input[type=text],input[type=password]{width:100%;font-size:13px;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);outline:none}
+    select:focus,input:focus{border-color:var(--color-border-primary)}
+    .run-btn{width:100%;margin-top:1.25rem;padding:10px;font-size:13px;font-weight:600;border-radius:var(--border-radius-md);border:none;cursor:pointer;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+    .run-btn:hover:not(:disabled){background:#1d4ed8}
+    .run-btn:disabled{opacity:.4;cursor:not-allowed}
+    .right-panel{display:flex;flex-direction:column;gap:.75rem}
+    .tabs{display:flex;gap:4px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+    .tab{flex:1;padding:6px;font-size:12px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-text-secondary)}
+    .tab.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border:0.5px solid var(--color-border-tertiary)}
+    .workspace{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem}
+    .page-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:6px 10px}
+    .page-nav button{font-size:12px;background:none;border:none;cursor:pointer;color:var(--color-text-primary);padding:2px 6px;border-radius:4px}
+    .page-nav button:disabled{opacity:.3;cursor:not-allowed}
+    .page-nav button:hover:not(:disabled){background:var(--color-background-secondary)}
+    .page-info{font-size:12px;color:var(--color-text-secondary);font-family:var(--font-mono)}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .col-label{font-size:11px;font-weight:600;text-transform:uppercase;color:var(--color-text-secondary);margin-bottom:4px}
+    .col-label.tl{color:#10b981}
+    textarea{width:100%;font-size:12px;font-family:var(--font-mono);padding:10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);resize:none;line-height:1.6}
+    .terminal{background:#030712;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;height:380px;overflow-y:auto;font-family:var(--font-mono);font-size:11px;display:none}
+    .terminal.visible{display:block}
+    .log-line{display:flex;gap:8px;margin-bottom:4px;line-height:1.5;border-bottom:1px solid #111827;padding-bottom:2px}
+    .log-time{color:#4b5563;font-weight:300}
+    .log-info{color:#3b82f6;font-weight:bold}
+    .log-success{color:#10b981;font-weight:bold}
+    .log-error{color:#ef4444;font-weight:bold}
+    .log-msg{color:#d1d5db}
+    .progress-bar{height:4px;background:var(--color-background-primary);border-radius:2px;overflow:hidden;margin-top:.75rem;border:0.5px solid var(--color-border-tertiary)}
+    .progress-fill{height:100%;width:0%;background:#10b981;border-radius:2px;transition:width .3s ease}
+    .export-row{display:flex;gap:.5rem;justify-content:flex-end}
+    .export-btn{font-size:12px;padding:6px 12px;border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-primary);transition:all 0.2s}
+    .export-btn:hover:not(:disabled){background:var(--color-background-primary);border-color:var(--color-border-primary)}
+    .export-btn:disabled{opacity:0.3;cursor:not-allowed}
+    .export-btn.primary{background:#2563eb;color:#fff;border-color:transparent}
+    .export-btn.primary:hover:not(:disabled){background:#1d4ed8}
+    .empty{text-align:center;padding:4rem 1rem;color:var(--color-text-secondary);font-size:13px;font-weight:300}
+    .empty i{font-size:32px;display:block;margin-bottom:.5rem;opacity:.3}
+    .error-bar{background:#7f1d1d;border:0.5px solid #b91c1c;color:#fca5a5;border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;display:none;font-family:var(--font-mono)}
+    .error-bar.visible{display:block}
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+<body>
 
-  <div id="root"></div>
+<div class="app">
+  <div class="header">
+    <div class="logo"><i class="ti ti-augmented-reality"></i></div>
+    <div>
+      <div class="title">DocuTranslate Pro</div>
+      <div class="subtitle">Powered by Microsoft Azure Translator API (F0 Free Tier)</div>
+    </div>
+    <div class="status-pill" id="status-pill">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">Ready</span>
+    </div>
+  </div>
 
-  <script type="text/babel">
-    // Extract state controls straight from the global React window instance
-    const { useState, useEffect, useRef } = React;
+  <div class="grid">
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div class="panel">
+        <div class="panel-title">Document Resource</div>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" accept="application/pdf" id="file-input">
+          <i class="ti ti-cloud-upload"></i>
+          <p>Upload PDF File</p>
+        </div>
+        <button class="demo-btn" id="demo-btn"><i class="ti ti-flask" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Load sample paper</button>
+        <div class="file-badge" id="file-badge" style="display:none">
+          <i class="ti ti-file-type-pdf"></i>
+          <span class="file-name" id="file-name-label"></span>
+        </div>
+      </div>
 
-    // API Key configuration placeholder
-    const apiKey = "";
+      <div class="panel">
+        <div class="panel-title">Tuning Configuration</div>
 
-    function App() {
-      // Application States
-      const [docPages, setDocPages] = useState([]);
-      const [currentPageIndex, setCurrentPageIndex] = useState(0);
-      const [fileName, setFileName] = useState('');
-      const [targetLang, setTargetLang] = useState('Spanish');
-      const [tone, setTone] = useState('Professional');
-      const [glossary, setGlossary] = useState('Translate technical terms accurately. Keep standard unit abbreviations intact.');
-      const [isProcessing, setIsProcessing] = useState(false);
-      const [progress, setProgress] = useState(0);
-      const [logs, setLogs] = useState([]);
-      const [activeTab, setActiveTab] = useState('editor'); 
-      const [errorMsg, setErrorMsg] = useState('');
+        <label class="field-label">Target Language Mapping</label>
+        <select id="target-lang">
+          <option value="vi">Vietnamese (Tiếng Việt)</option>
+          <option value="ja">Japanese (日本語)</option>
+          <option value="es">Spanish (Español)</option>
+          <option value="fr">French (Français)</option>
+          <option value="de">German (Deutsch)</option>
+          <option value="zh-Hans">Chinese (Simplified)</option>
+          <option value="pt">Portuguese (Português)</option>
+          <option value="it">Italiano</option>
+          <option value="ko">Korean (한국어)</option>
+        </select>
 
-      const SAMPLE_DOC = [
-        {
-          pageNumber: 1,
-          originalText: `Abstract—Quantum computing represents a paradigm shift in processing power, leveraging superposition and entanglement to solve problems intractable for classical computers.\n\nIn this paper, we present a novel topological qubit architecture. By utilizing Majorana fermions at the interfaces of superconductor-semiconductor heterostructures, we achieve a 10x improvement in coherence times (T1).\n\nI. INTRODUCTION\nClassical logic gates operate on binary states (0 or 1). Quantum bits, or qubits, exist in linear combinations of states, allowing exponential parallel computations. However, environmental decoherence remains the primary challenge to building a fault-tolerant quantum computer.`,
-          translatedText: '',
-          thoughts: ''
-        },
-        {
-          pageNumber: 2,
-          originalText: `II. EXPERIMENTAL SETUP & CRYOGENICS\nThe experimental apparatus operates inside a dilution refrigerator capable of cooling the superconductor down to a mixing chamber temperature of 10 mK (milli-Kelvin).\n\nHigh-frequency coaxial cables deliver microwave control pulses directly to the quantum chip.\n\nFigure 2.1 displays the feedback loop of our cryogenic interface. We observe critical currents of up to 450 nA, verifying robust topological phase transitions. These physical conditions require pristine isolation from electromagnetic interference (EMI).`,
-          translatedText: '',
-          thoughts: ''
-        }
-      ];
+        <button class="run-btn" id="run-btn" disabled>
+          <i class="ti ti-bolt"></i>
+          Translate Document
+        </button>
+        <div class="progress-bar" id="progress-bar" style="display:none">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </div>
 
-      // Initialize Core dependencies once DOM hooks match
-      useEffect(() => {
-        if (window.pdfjsLib) {
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-          addLog("Agent initialization complete. Parser engine & PDF exporter successfully loaded.", "info");
-        } else {
-          addLog("Error loading core parsing extensions.", "error");
-        }
-      }, []);
+    <div class="right-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="tabs">
+          <button class="tab active" id="tab-workspace" onclick="switchTab('workspace')">Workspace Console</button>
+          <button class="tab" id="tab-terminal" onclick="switchTab('terminal')">Execution Trace</button>
+        </div>
+        <div class="export-row">
+          <button class="export-btn" id="export-md" disabled onclick="exportMD()"><i class="ti ti-markdown" style="font-size:13px;vertical-align:-1px;margin-right:3px"></i>MD</button>
+          <button class="export-btn primary" id="export-pdf" disabled onclick="exportPDF()"><i class="ti ti-file-download" style="font-size:13px;vertical-align:-1px;margin-right:3px"></i>PDF Export</button>
+        </div>
+      </div>
 
-      const addLog = (message, type = 'info') => {
-        const timestamp = new Date().toLocaleTimeString();
-        setLogs(prev => [
-          { id: Date.now() + Math.random(), time: timestamp, message, type },
-          ...prev
-        ]);
-      };
+      <div class="error-bar" id="error-bar"></div>
 
-      const handlePdfUpload = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setFileName(file.name);
-        setDocPages([]);
-        setCurrentPageIndex(0);
-        setErrorMsg('');
-        addLog(`Uploaded file detected: "${file.name}". Starting extraction pipeline...`, "info");
-
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          addLog(`PDF structure parsed. Total pages: ${pdf.numPages}. Initializing text extraction...`, "info");
-
-          const pagesData = [];
-          for (let i = 1; i <= pdf.numPages; i++) {
-            addLog(`Extracting text structure from Page ${i}...`, "info");
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            
-            let lastY = null;
-            let lines = [];
-            let currentLine = [];
-            
-            textContent.items.forEach(item => {
-              const y = item.transform[5];
-              if (lastY === null || Math.abs(y - lastY) < 6) {
-                currentLine.push(item.str);
-              } else {
-                lines.push(currentLine.join(' '));
-                currentLine = [item.str];
-              }
-              lastY = y;
-            });
-            
-            if (currentLine.length > 0) lines.push(currentLine.join(' '));
-
-            const pageText = lines.join('\n');
-            pagesData.push({
-              pageNumber: i,
-              originalText: pageText || "[Empty page or scanned element without embedded text]",
-              translatedText: '',
-              thoughts: ''
-            });
-          }
-
-          setDocPages(pagesData);
-          addLog("PDF text extracted successfully. Ready to run translating agent.", "success");
-        } catch (error) {
-          console.error(error);
-          setErrorMsg("Failed to parse PDF. Ensure it is a valid, unencrypted text-based PDF document.");
-          addLog("Error occurred during PDF extraction step.", "error");
-        }
-      };
-
-      const loadDemoData = () => {
-        setDocPages(SAMPLE_DOC);
-        setFileName("quantum_computing_paper_demo.pdf");
-        setCurrentPageIndex(0);
-        setErrorMsg('');
-        addLog("Loaded internal sample document. Feel free to evaluate standard capabilities.", "success");
-      };
-
-      const fetchTranslationWithRetry = async (text, targetLanguage, styleTone, glossaryInstructions, retries = 5, delay = 1000) => {
-        const systemPrompt = `You are a professional PDF document translating agent. Your objective is to read extracted document page layouts, carefully analyze key terminology, context, style guides, and translate the text accurately to the target language.\n\nDIRECTIONS:\n1. Translate to: ${targetLanguage}\n2. Tone: ${styleTone}\n3. Terminology & Override Glossary Rules: ${glossaryInstructions || 'None'}\n4. Preserve structural indentation, paragraph spacings, and technical equations/variables. Do not summarize unless requested.\n5. Provide your response as a structured JSON object. First, write down your Agent "thoughts" evaluating specific semantic risks or vocabulary choices. Second, provide the detailed translation text.`;
-
-        const payload = {
-          contents: [{ parts: [{ text: text }] }],
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: "OBJECT",
-              properties: {
-                thoughts: { type: "STRING" },
-                translation: { type: "STRING" }
-              },
-              required: ["thoughts", "translation"]
-            }
-          }
-        };
-
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-        for (let attempt = 1; attempt <= retries; attempt++) {
-          try {
-            const response = await fetch(url, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) throw new Error(`Gemini API returned status ${response.status}`);
-            const data = await response.json();
-            const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!jsonText) throw new Error("No text response received from Gemini.");
-            
-            return JSON.parse(jsonText);
-          } catch (error) {
-            if (attempt === retries) throw error;
-            const backoffDelay = delay * Math.pow(2, attempt - 1);
-            await new Promise(resolve => setTimeout(resolve, backoffDelay));
-          }
-        }
-      };
-
-      const startTranslationAgent = async () => {
-        if (docPages.length === 0) {
-          setErrorMsg("No document loaded. Please upload a PDF file or click 'Use Sample Research Paper'.");
-          return;
-        }
-
-        setIsProcessing(true);
-        setProgress(0);
-        setErrorMsg('');
-        setActiveTab('terminal');
-        addLog(`Initiating Agent Core. Target language: ${targetLang}, Styling Tone: ${tone}.`, "info");
-
-        const updatedPages = [...docPages];
-
-        for (let i = 0; i < updatedPages.length; i++) {
-          const pageNum = updatedPages[i].pageNumber;
-          addLog(`[Page ${pageNum}/${updatedPages.length}] Running Layout Analysis & Style Mapping...`, "info");
-          
-          try {
-            const response = await fetchTranslationWithRetry(
-              updatedPages[i].originalText,
-              targetLang,
-              tone,
-              glossary
-            );
-
-            updatedPages[i].translatedText = response.translation;
-            updatedPages[i].thoughts = response.thoughts;
-
-            addLog(`[Agent Brainstorming Page ${pageNum}]: "${response.thoughts.slice(0, 120)}..."`, "success");
-            setDocPages([...updatedPages]);
-            setProgress(Math.round(((i + 1) / updatedPages.length) * 100));
-          } catch (err) {
-            console.error(err);
-            addLog(`[Error Page ${pageNum}] Failed to execute translation. API Key missing or limits hit.`, "error");
-            setErrorMsg(`API Agent process halted. Add your valid Gemini API Key to the code configuration.`);
-            break;
-          }
-        }
-
-        setIsProcessing(false);
-      };
-
-      const exportAsMarkdown = () => {
-        if (docPages.length === 0) return;
-        let content = `# Translated Document: ${fileName || "document"}\n* Target: ${targetLang} (${tone} tone) *\n\n---\n\n`;
-        docPages.forEach(p => {
-          content += `## PAGE ${p.pageNumber}\n\n${p.translatedText || "*Page was not translated*"}\n\n---\n\n`;
-        });
-
-        const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `${fileName ? fileName.replace('.pdf', '') : 'translated'}_${targetLang.toLowerCase()}.md`);
-        link.click();
-        addLog("Exported successfully as Markdown (.md).", "success");
-      };
-
-      const exportAsPdf = () => {
-        if (docPages.length === 0) return;
-        try {
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-          doc.setFont("Helvetica", "normal");
-          
-          docPages.forEach((p, idx) => {
-            if (idx > 0) doc.addPage();
-            doc.setFontSize(10);
-            doc.setTextColor(140, 140, 140);
-            doc.text(`Translated Page ${p.pageNumber} | Target: ${targetLang}`, 15, 15);
-            doc.line(15, 18, 195, 18);
-            
-            doc.setFontSize(11);
-            doc.setTextColor(30, 30, 30);
-            const lines = doc.splitTextToSize(p.translatedText || "[Page untranslated]", 180);
-            doc.text(lines, 15, 28);
-          });
-
-          doc.save(`${fileName ? fileName.replace('.pdf', '') : 'translated'}_${targetLang.toLowerCase()}.pdf`);
-          addLog("Compiled and downloaded output PDF successfully.", "success");
-        } catch (err) {
-          setErrorMsg("Failed to compile layout elements into PDF.");
-        }
-      };
-
-      return (
-        <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans antialiased">
-          <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight text-white">DocuTranslate AI Agent</h1>
-                <p className="text-xs text-slate-400">Contextual Layout & Phrase Translation Sandbox</p>
-              </div>
+      <div class="workspace" id="workspace-panel">
+        <div class="empty" id="empty-state">
+          <i class="ti ti-files"></i>
+          Mount a resource file layout to access the matrix interface.
+        </div>
+        <div id="editor" style="display:none">
+          <div class="page-nav">
+            <button id="prev-btn" onclick="changePage(-1)" disabled>← Previous Segment</button>
+            <span class="page-info" id="page-info">Segment 1 / 1</span>
+            <button id="next-btn" onclick="changePage(1)" disabled>Next Segment →</button>
+          </div>
+          <div class="cols">
+            <div>
+              <div class="col-label">Source Text Buffer</div>
+              <textarea id="source-txt" rows="15" readonly></textarea>
             </div>
             <div>
-              {isProcessing ? (
-                <div className="bg-slate-800 px-4 py-2 rounded-lg border border-indigo-500/30 text-sm text-indigo-300">
-                  Agent Translating ({progress}%)
-                </div>
-              ) : (
-                <span className="text-xs bg-slate-800/60 border border-slate-700 px-3 py-1.5 rounded-full text-slate-400 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500"></span> Active Sandbox
-                </span>
-              )}
+              <div class="col-label tl" id="tl-label">Translation Allocation</div>
+              <textarea id="translated-txt" rows="15" placeholder="Translated text string will parse here..."></textarea>
             </div>
-          </header>
-
-          <div className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <aside className="lg:col-span-4 flex flex-col gap-6">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <h2 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wide">Input PDF Document</h2>
-                <div className="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl p-5 text-center relative cursor-pointer group bg-slate-950/40">
-                  <input type="file" accept="application/pdf" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handlePdfUpload} disabled={isProcessing} />
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-slate-300">Upload PDF document</div>
-                    <div className="text-xs text-slate-500">Extract elements dynamically</div>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-col gap-2">
-                  <button onClick={loadDemoData} disabled={isProcessing} className="w-full text-xs text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 py-2.5 rounded-xl border border-indigo-500/20 transition-all font-medium">
-                    ⚡ Use Sample Research Paper (Multi-page)
-                  </button>
-                </div>
-                {fileName && (
-                  <div className="mt-4 p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div className="truncate"><span className="block text-xs text-slate-500">Active File</span><span className="text-sm font-medium text-emerald-400">{fileName}</span></div>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">Agent Parameters</h2>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">Target Language</label>
-                  <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)} disabled={isProcessing} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200">
-                    <option value="Spanish">Spanish (Español)</option>
-                    <option value="French">French (Français)</option>
-                    <option value="German">German (Deutsch)</option>
-                    <option value="Vietnamese">Vietnamese (Tiếng Việt)</option>
-                    <option value="Japanese">Japanese (日本語)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">Tone Style Guide</label>
-                  <select value={tone} onChange={(e) => setTone(e.target.value)} disabled={isProcessing} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200">
-                    <option value="Professional">Professional (Corporate)</option>
-                    <option value="Academic">Academic (Research Standard)</option>
-                    <option value="Casual">Casual / Fluent</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">Custom Glossary Instructions</label>
-                  <textarea value={glossary} onChange={(e) => setGlossary(e.target.value)} disabled={isProcessing} rows={3} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 resize-none" />
-                </div>
-                <button onClick={startTranslationAgent} disabled={isProcessing || docPages.length === 0} className={`w-full py-3 rounded-xl font-bold transition-all text-sm ${docPages.length === 0 ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}>
-                  Execute Agent Translation
-                </button>
-              </div>
-            </aside>
-
-            <main className="lg:col-span-8 flex flex-col gap-6">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-xl">
-                <div className="border-b border-slate-800 px-6 py-4 flex justify-between items-center bg-slate-900/40">
-                  <div className="flex space-x-2">
-                    <button onClick={() => setActiveTab('editor')} className={`px-4 py-2 rounded-xl text-xs font-semibold ${activeTab === 'editor' ? 'bg-slate-800 text-slate-100' : 'text-slate-400'}`}>Workspace</button>
-                    <button onClick={() => setActiveTab('terminal')} className={`px-4 py-2 rounded-xl text-xs font-semibold ${activeTab === 'terminal' ? 'bg-slate-800 text-slate-100' : 'text-slate-400'}`}>Terminal Logs</button>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={exportAsMarkdown} disabled={docPages.length === 0} className="bg-slate-800 text-slate-200 text-xs py-2 px-3 rounded-xl hover:bg-slate-700">MD Export</button>
-                    <button onClick={exportAsPdf} disabled={docPages.length === 0} className="bg-indigo-600 text-white text-xs py-2 px-3 rounded-xl hover:bg-indigo-500">PDF Compile</button>
-                  </div>
-                </div>
-
-                {errorMsg && (
-                  <div className="bg-rose-950/40 border-b border-rose-900 p-4 text-xs text-rose-300">⚠️ {errorMsg}</div>
-                )}
-
-                {activeTab === 'editor' ? (
-                  <div className="p-6 space-y-6">
-                    {docPages.length === 0 ? (
-                      <div className="text-center py-24 text-slate-600 text-sm">No active file sandbox running. Upload a file or click the demo button.</div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
-                          <button onClick={() => setCurrentPageIndex(p => Math.max(0, p - 1))} disabled={currentPageIndex === 0} className="text-slate-300 disabled:opacity-30">Previous</button>
-                          <span className="text-slate-400 font-medium">Page {currentPageIndex + 1} of {docPages.length}</span>
-                          <button onClick={() => setCurrentPageIndex(p => Math.min(docPages.length - 1, p + 1))} disabled={currentPageIndex === docPages.length - 1} className="text-slate-300 disabled:opacity-30">Next</button>
-                        </div>
-
-                        {docPages[currentPageIndex]?.thoughts && (
-                          <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-xl p-4 text-xs text-slate-300 italic">
-                            <span className="block text-indigo-400 font-bold not-italic mb-1">🧠 Agent Insight strategy:</span>
-                            "{docPages[currentPageIndex].thoughts}"
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs text-slate-500 mb-1">Extracted Source Text</label>
-                            <textarea readOnly value={docPages[currentPageIndex]?.originalText || ''} rows={12} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-400 resize-none" />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-indigo-400 mb-1">Translated Output ({targetLang})</label>
-                            <textarea value={docPages[currentPageIndex]?.translatedText || ''} onChange={(e) => {
-                              const updated = [...docPages];
-                              updated[currentPageIndex].translatedText = e.target.value;
-                              setDocPages(updated);
-                            }} rows={12} className="w-full bg-slate-950 border border-indigo-950/40 focus:border-indigo-500 rounded-xl p-4 text-xs font-mono text-slate-200 resize-none focus:outline-none" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-6 bg-slate-950 h-[450px] overflow-y-auto font-mono text-xs space-y-2">
-                    {logs.length === 0 ? (
-                      <div className="text-slate-700">&gt; Console idling. waiting for file system instructions...</div>
-                    ) : (
-                      logs.map(log => (
-                        <div key={log.id} className="flex gap-2">
-                          <span className="text-slate-600">{log.time}</span>
-                          <span className={log.type === 'success' ? 'text-emerald-400' : log.type === 'error' ? 'text-rose-400' : 'text-indigo-400'}>
-                            [{log.type.toUpperCase()}]
-                          </span>
-                          <span className="text-slate-300">{log.message}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            </main>
           </div>
         </div>
-      );
+      </div>
+
+      <div class="terminal" id="terminal-panel"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script>
+const LANGS = {es:'Spanish',fr:'French',de:'German',vi:'Vietnamese',ja:'Japanese','zh-Hans':'Chinese',pt:'Portuguese',it:'Italian',ko:'Korean'};
+const SAMPLE = [
+  {pageNumber:1, originalText: `Abstract—Quantum computing represents a paradigm shift in processing power, leveraging superposition and entanglement to solve problems intractable for classical computers.\n\nIn this paper, we present a novel topological qubit architecture. By utilizing Majorana fermions at the interfaces of superconductor-semiconductor heterostructures, we achieve a 10x improvement in coherence times (T1).\n\nI. INTRODUCTION\nClassical logic gates operate on binary states (0 or 1). Quantum bits, or qubits, exist in linear combinations of states, allowing exponential parallel computations.`, translatedText:''},
+  {pageNumber:2, originalText: `II. EXPERIMENTAL SETUP & CRYOGENICS\nThe experimental apparatus operates inside a dilution refrigerator capable of cooling the superconductor down to a mixing chamber temperature of 10 mK (milli-Kelvin).\n\nHigh-frequency coaxial cables deliver microwave control pulses directly to the quantum chip.\n\nWe observe critical currents of up to 450 nA, verifying robust topological phase transitions. These physical conditions require pristine isolation from electromagnetic interference (EMI).`, translatedText:''}
+];
+
+let pages = [], currentPage = 0, isRunning = false;
+
+// 🔑 COUPLING NATIVE CREDENTIAL CONSTANTS HERE
+const AZURE_KEY = "66qVloPDy1sGGZOFTQzbSv31FGyythaRFESnFOLmHqvRCqoJgSiRJQQJ99CFACqBBLyXJ3w3AAAbACOGp8EY";
+const AZURE_REGION = "southeastasia"; 
+
+if(window.pdfjsLib) window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+function log(msg, type='info'){
+  const t = new Date().toLocaleTimeString();
+  const el = document.getElementById('terminal-panel');
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${t}</span><span class="log-${type}">[${type.toUpperCase()}]</span><span class="log-msg">${msg}</span>`;
+  el.prepend(line);
+}
+
+function setStatus(text, busy=false){
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-dot').className = 'dot' + (busy?' busy':'');
+}
+
+function setError(msg){
+  const b = document.getElementById('error-bar');
+  if(msg){b.textContent = '⚠️ ' + msg; b.classList.add('visible');}
+  else b.classList.remove('visible');
+}
+
+function switchTab(tab){
+  document.getElementById('tab-workspace').classList.toggle('active', tab==='workspace');
+  document.getElementById('tab-terminal').classList.toggle('active', tab==='terminal');
+  document.getElementById('workspace-panel').style.display = tab==='workspace'?'':'none';
+  document.getElementById('terminal-panel').className = 'terminal' + (tab==='terminal'?' visible':'');
+}
+
+function updateEditor(){
+  const hasPages = pages.length > 0;
+  document.getElementById('empty-state').style.display = hasPages ? 'none' : '';
+  document.getElementById('editor').style.display = hasPages ? '' : 'none';
+  if(!hasPages) return;
+  const p = pages[currentPage];
+  document.getElementById('page-info').textContent = `Segment ${currentPage+1} / ${pages.length}`;
+  document.getElementById('prev-btn').disabled = currentPage === 0;
+  document.getElementById('next-btn').disabled = currentPage === pages.length - 1;
+  document.getElementById('source-txt').value = p.originalText;
+  document.getElementById('translated-txt').value = p.translatedText;
+  const lang = document.getElementById('target-lang').value;
+  document.getElementById('tl-label').textContent = `Translation Allocation (${LANGS[lang]||lang})`;
+}
+
+function changePage(dir){
+  currentPage = Math.max(0, Math.min(pages.length-1, currentPage+dir));
+  updateEditor();
+}
+
+document.getElementById('translated-txt').addEventListener('input', (e) => {
+  if(pages[currentPage]) pages[currentPage].translatedText = e.target.value;
+});
+
+// FIX: Validated directly against constant length so it unlocks immediately upon dropping a document
+function checkRunReady(){
+  const hasPages = pages.length > 0;
+  const hasKey = AZURE_KEY.trim().length >= 10;
+  document.getElementById('run-btn').disabled = !(hasPages && hasKey) || isRunning;
+  document.getElementById('export-md').disabled = !hasPages;
+  document.getElementById('export-pdf').disabled = !hasPages;
+}
+
+document.getElementById('demo-btn').addEventListener('click', ()=>{
+  pages = SAMPLE.map(p=>({...p, translatedText:''}));
+  currentPage = 0;
+  document.getElementById('file-badge').style.display = 'flex';
+  document.getElementById('file-name-label').textContent = 'quantum_computing_demo.pdf';
+  setError('');
+  updateEditor();
+  checkRunReady();
+  log('Loaded testing matrix profile variables. Ready for processing loops.', 'success');
+});
+
+document.getElementById('file-input').addEventListener('change', async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+  log(`Parsing document layer: "${file.name}"...`, 'info');
+  setError('');
+  try{
+    const buf = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+    log(`File mapping complete. Detected ${pdf.numPages} target pages.`, 'info');
+    const result = [];
+    
+    for(let i=1;i<=pdf.numPages;i++){
+      const pg = await pdf.getPage(i);
+      const tc = await pg.getTextContent();
+      
+      tc.items.sort((a, b) => {
+        if (Math.abs(b.transform[5] - a.transform[5]) < 5) {
+          return a.transform[4] - b.transform[4];
+        }
+        return b.transform[5] - a.transform[5];
+      });
+
+      let lastY=null, lines=[], cur=[];
+      tc.items.forEach(it=>{
+        const y = it.transform[5];
+        if(lastY===null || Math.abs(y-lastY)<8) {
+          cur.push(it.str);
+        } else {
+          lines.push(cur.join(' ')); 
+          cur=[it.str];
+        }
+        lastY=y;
+      });
+      if(cur.length) lines.push(cur.join(' '));
+      
+      result.push({pageNumber:i, originalText: lines.join('\n').trim() || '[No extractable text blocks]', translatedText:''});
+      log(`Node Segment ${i} extracted cleanly.`, 'info');
+    }
+    pages = result;
+    currentPage = 0;
+    document.getElementById('file-badge').style.display = 'flex';
+    document.getElementById('file-name-label').textContent = file.name;
+    updateEditor();
+    checkRunReady();
+    log('Extraction complete. Workspace initialized.', 'success');
+  } catch(err){
+    setError('Failed to extract file coordinates.');
+    log('Exception trace: '+err.message, 'error');
+  }
+});
+
+async function translateChunk(text, targetLang, apiKey, region){
+  const baseUrl = 'https://api.cognitive.microsofttranslator.com/translate';
+  const endpoint = `${baseUrl}?api-version=3.0&to=${targetLang}`;
+  
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Ocp-Apim-Subscription-Key': apiKey,
+      'Ocp-Apim-Subscription-Region': region || 'global'
+    },
+    body: JSON.stringify([{ Text: text }])
+  });
+
+  if(!response.ok){
+    const jsonErr = await response.json().catch(()=>({}));
+    throw new Error(jsonErr?.error?.message || `HTTP Service Exception: Code ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data[0]?.translations[0]?.text || '';
+}
+
+const CHAR_LIMIT = 4000;
+function splitText(text) {
+  if (text.length <= CHAR_LIMIT) return [text];
+  const chunks = [];
+  const paragraphs = text.split('\n\n');
+  let cur = '';
+
+  for (const p of paragraphs) {
+    if (p.length > CHAR_LIMIT) {
+      if (cur) { chunks.push(cur.trim()); cur = ''; }
+      let remaining = p;
+      while (remaining.length > CHAR_LIMIT) {
+        chunks.push(remaining.substring(0, CHAR_LIMIT));
+        remaining = remaining.substring(CHAR_LIMIT);
+      }
+      cur = remaining;
+      continue;
     }
 
-    // Mount the single root execution tree
-    const root = 本DOM = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+    if ((cur + '\n\n' + p).length > CHAR_LIMIT) {
+      if (cur) chunks.push(cur.trim());
+      cur = p;
+    } else {
+      cur = cur ? cur + '\n\n' + p : p;
+    }
+  }
+  if (cur.trim()) chunks.push(cur.trim());
+  return chunks;
+}
+
+document.getElementById('run-btn').addEventListener('click', async ()=>{
+  if(isRunning || pages.length===0) return;
+  
+  // FIX: Read directly from hardcoded configurations securely
+  const apiKey = AZURE_KEY;
+  const region = AZURE_REGION;
+  const targetLang = document.getElementById('target-lang').value;
+  
+  if(!apiKey || apiKey.includes("YOUR_32_CHARACTER")){
+    setError('Authentication placeholder detected: Please patch the source code with your actual key.'); 
+    return;
+  }
+
+  isRunning = true;
+  setError('');
+  setStatus('Translating...', true);
+  switchTab('terminal');
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('progress-bar').style.display = '';
+  log(`Initializing Azure Cognitive Pipeline → Target Language ISO: [${targetLang}]`, 'info');
+
+  for(let i=0;i<pages.length;i++){
+    log(`[Segment ${i+1}/${pages.length}] Processing text segments...`, 'info');
+    try{
+      const chunks = splitText(pages[i].originalText);
+      const results = [];
+      for(const chunk of chunks){
+        const out = await translateChunk(chunk, targetLang, apiKey, region);
+        results.push(out);
+      }
+      pages[i].translatedText = results.join('\n\n');
+      log(`[Segment ${i+1}] Done. Chars processed: ${pages[i].translatedText.length}`, 'success');
+    } catch(err){
+      log(`[Exception Terminal Halt]: ${err.message}`, 'error');
+      setError(`Translation loop broken on segment ${i+1}: ${err.message}`);
+      break;
+    }
+    const pct = Math.round(((i+1)/pages.length)*100);
+    document.getElementById('progress-fill').style.width = pct+'%';
+    if(currentPage === i) updateEditor();
+  }
+
+  isRunning = false;
+  setStatus('Ready', false);
+  document.getElementById('run-btn').disabled = false;
+  updateEditor();
+  checkRunReady();
+  log('Full translation payload loop completed.', 'success');
+});
+
+function exportMD(){
+  const lang = document.getElementById('target-lang').value;
+  let md = `# Translated Document Matrix\n_Target ISO: ${lang.toUpperCase()} — Language: ${LANGS[lang]||lang}_\n\n---\n\n`;
+  pages.forEach(p=>{
+    md += `## Document Segment ${p.pageNumber}\n\n${p.translatedText||'*(Segment untranslated)*'}\n\n---\n\n`;
+  });
+  const blob = new Blob([md],{type:'text/markdown'});
+  const a = document.createElement('a'); 
+  const url = URL.createObjectURL(blob);
+  a.href = url; 
+  a.download = `azure_translated_${lang}.md`; 
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 150);
+  log('Markdown structure exported cleanly.', 'success');
+}
+
+function exportPDF(){
+  if(pages.length === 0) return;
+  const lang = document.getElementById('target-lang').value;
+  log('Spawning print sandbox pipeline...', 'info');
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed'; iframe.style.bottom = '0'; iframe.style.right = '0';
+  iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  let pagesHtml = '';
+  
+  pages.forEach(p => {
+    pagesHtml += `
+      <div class="pdf-page">
+        <div class="pdf-header">Azure Translation Space Document | Segment Page ${p.pageNumber} — Language Target: ${LANGS[lang]||lang}</div>
+        <div class="pdf-content">${p.translatedText ? p.translatedText.replace(/\n/g, '<br>') : '<i>[Untranslated Content Block]</i>'}</div>
+      </div>
+    `;
+  });
+
+  doc.write(`
+    <html>
+      <head>
+        <title>Document Layout View Sandbox</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+          body { font-family: 'Inter', -apple-system, sans-serif; color: #1f2937; padding: 0; margin: 0; background: #fff; }
+          .pdf-page { page-break-after: always; padding: 25mm 20mm; box-sizing: border-box; }
+          .pdf-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 25px; font-weight: 500; }
+          .pdf-content { font-size: 13px; line-height: 1.7; color: #111827; white-space: pre-wrap; word-wrap: break-word; }
+          @media print {
+            body { background: none; }
+            .pdf-page { padding: 15mm 15mm; margin: 0; border: none; }
+          }
+        </style>
+      </head>
+      <body>${pagesHtml}</body>
+    </html>
+  `);
+  doc.close();
+
+  iframe.contentWindow.focus();
+  
+  if (iframe.contentWindow.document.fonts) {
+    iframe.contentWindow.document.fonts.ready.then(() => {
+      iframe.contentWindow.print();
+      document.body.removeChild(iframe);
+      log('Native system print dialog executed with loaded typography assets.', 'success');
+    }).catch(() => {
+      iframe.contentWindow.print();
+      document.body.removeChild(iframe);
+    });
+  } else {
+    setTimeout(() => {
+      iframe.contentWindow.print();
+      document.body.removeChild(iframe);
+    }, 400);
+  }
+}
+
+log('Sandbox fully ready. Load a local PDF layout to deploy.', 'info');
+</script>
 </body>
 </html>
